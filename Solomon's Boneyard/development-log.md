@@ -59,3 +59,29 @@ Scripts/
 - 마법/적 프리팹 및 SO 에셋 생성은 Unity 에디터 작업 (사용자 진행)
 - 안드로이드 빌드(IL2CPP, ARM64), 실기 멀티터치 검증
 - 레벨업/스킬 트리, 골드/상점 메타 루프
+
+## 2026-05-12 (후속): 로그라이크 코어 구현
+
+### 추가된 모듈
+- **PlayerHealth**: HP, 무적 시간(0.5s), GameOver 트리거. 싱글톤.
+- **EnemyController 접촉 데미지**: `OnCollisionStay2D`에서 0.5초 주기로 `PlayerHealth.TakeDamage`. 이전 TODO 해소.
+- **XpOrb (Pickup 폴더 신설)**: 자석 흡수(반경 2.5, 속도 8). `PlayerExperience.AddXp`로 누적.
+- **PlayerExperience**: 레벨, XP, 곡선 기반 XpNeeded(`base * level^power`). 임계 도달 시 `LevelUpController.OpenChoice`.
+- **SkillUpgradeSO + UpgradePool + UpgradeApplier + LevelUpController (Upgrade 폴더 신설)**:
+  - 8종 업그레이드 kind(DamageMul/CooldownReduce/SpeedMul/MaxHpAdd/HealNow/UnlockSlotA/B/ProjectileSpeed).
+  - 풀에서 가중치 없이 랜덤 N장(기본 3) 추출, minPlayerLevel·maxStacks 필터링.
+  - 선택 시 Time.timeScale=0으로 일시정지 → 카드 클릭 → 적용 → 재개.
+- **EnemyController XP 드롭**: 사망 시 `xpOrbPrefab` 풀에서 스폰.
+- **EnemyTypeSO + WaveSpawner 가중치 추첨**: 웨이브 인덱스에 따라 등장 가능한 타입을 가중치로 추첨. 기존 `enemyPrefab`은 폴백.
+- **MagicCaster 업그레이드 반영**: `UpgradeApplier`의 DamageMul/CooldownMul/ProjectileSpeedMul을 발사 시 곱연산.
+
+### 게임 루프 (완성)
+스폰 → 추적 → 접촉/사격 → 적 사망 → XP 오브 드롭 → 흡수 → 레벨업 → 카드 3장 선택 → 스탯/슬롯 변경 → 반복 → 플레이어 HP=0 → GameOver
+
+### 다음 단계 후보
+- 메인 메뉴 + 게임 시작/종료 흐름
+- 메타 진행(영구 업그레이드, 골드)
+- 사운드·시각 이펙트(피격, 사망, 레벨업)
+- 보스 적 + 보스 웨이브
+- 적 공격 패턴 다양화 (원거리 적, 돌진 적)
+- 입력 시스템 New Input System 통합 검토

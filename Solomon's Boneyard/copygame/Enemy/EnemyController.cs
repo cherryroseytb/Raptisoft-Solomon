@@ -18,6 +18,10 @@ namespace SolomonCopy.Enemy
         public float moveSpeed = 2.5f;
         public int contactDamage = 1;
 
+        [Header("드롭")]
+        public GameObject xpOrbPrefab;  // 사망 시 스폰할 XpOrb 프리팹 (선택)
+        public int xpAmount = 1;
+
         [Header("참조")]
         public Transform player;
 
@@ -97,17 +101,31 @@ namespace SolomonCopy.Enemy
         private void Die()
         {
             if (GameManager.Instance != null) GameManager.Instance.AddScore(10);
+
+            // XP 오브 드롭
+            if (xpOrbPrefab != null)
+            {
+                GameObject orb = ObjectPooler.Instance != null
+                    ? ObjectPooler.Instance.Spawn(xpOrbPrefab, transform.position, Quaternion.identity)
+                    : Instantiate(xpOrbPrefab, transform.position, Quaternion.identity);
+                var x = orb.GetComponent<Pickup.XpOrb>();
+                if (x != null) x.xpAmount = xpAmount;
+            }
+
             if (ObjectPooler.Instance != null) ObjectPooler.Instance.Return(gameObject);
             else gameObject.SetActive(false);
         }
 
-        private void OnCollisionEnter2D(Collision2D collision)
+        private float _nextContactDamageAt;
+
+        private void OnCollisionStay2D(Collision2D collision)
         {
-            // 플레이어 접촉 데미지는 추후 PlayerHealth에서 처리 (MVP에서는 콘솔 로그만)
-            if (collision.collider.CompareTag("Player"))
-            {
-                // TODO: PlayerHealth.TakeDamage(contactDamage);
-            }
+            // 플레이어와 접촉 중 일정 주기로 데미지 (스파이크 방지)
+            if (!collision.collider.CompareTag("Player")) return;
+            if (Time.time < _nextContactDamageAt) return;
+            _nextContactDamageAt = Time.time + 0.5f;
+            if (Player.PlayerHealth.Instance != null)
+                Player.PlayerHealth.Instance.TakeDamage(contactDamage);
         }
     }
 }

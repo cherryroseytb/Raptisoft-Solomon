@@ -140,6 +140,93 @@ Project 창 우클릭 → Create > SolomonCopy > Magic
 
 ---
 
+---
+
+# 2차 추가 (2026-05-12 후속) — PlayerHealth, XP, 레벨업, 적 다양화
+
+## 8. 추가 씬 셋업
+
+### Player 추가 컴포넌트
+- [ ] `PlayerHealth.cs` 부착 (maxHp 기본 100)
+- [ ] `PlayerExperience.cs` 부착 (level=1, xpToNextBase=5, xpCurvePower=1.4)
+- [ ] `UpgradeApplier.cs` 부착
+
+### LevelUpController
+- [ ] 빈 GO `LevelUpController` + `LevelUpController.cs` 부착
+- [ ] `pool` ← UpgradePool SO 연결
+- [ ] `applier` ← Player의 UpgradeApplier 드래그
+- [ ] Canvas 아래 `LevelUpPanel` (비활성 상태) 생성, 3개 Button 카드 배치
+  - [ ] cardButtons[0..2], cardTitles[0..2], cardDescs[0..2], cardIcons[0..2] 각각 연결
+- [ ] `PlayerExperience.levelUpController` ← LevelUpController 연결
+
+### UI 추가
+- [ ] HP Slider → `PlayerHealth.hpBar`
+- [ ] XP Slider → `PlayerExperience.xpBar`
+- [ ] Level Text → `PlayerExperience.levelText`
+
+### XP Orb 프리팹
+- [ ] 빈 GO + SpriteRenderer(작은 보석) + CircleCollider2D(IsTrigger ✓) + Rigidbody2D(Kinematic)
+- [ ] `XpOrb.cs` 부착, Tag "Pickup" 추가(선택)
+- [ ] `Assets/Prefabs/Pickups/`에 저장
+- [ ] EnemyController.xpOrbPrefab(또는 EnemyTypeSO 측에서) 연결
+
+## 9. 데이터 자산 추가
+
+### Upgrade 풀
+Project 창 우클릭 → Create > SolomonCopy > Upgrade
+
+- [ ] `Upgrade_DamageUp1` (kind=DamageMul, magnitude=0.15, maxStacks=5)
+- [ ] `Upgrade_CooldownDown1` (kind=CooldownReduce, magnitude=0.1, maxStacks=5)
+- [ ] `Upgrade_SpeedUp1` (kind=SpeedMul, magnitude=0.1, maxStacks=3)
+- [ ] `Upgrade_MaxHpUp1` (kind=MaxHpAdd, magnitude=20, maxStacks=5)
+- [ ] `Upgrade_HealNow` (kind=HealNow, magnitude=30)
+- [ ] `Upgrade_SlotA_Ice` (kind=UnlockSlotA, targetMagic=Ice, maxStacks=1)
+- [ ] `Upgrade_SlotB_Lightning` (kind=UnlockSlotB, targetMagic=Lightning, maxStacks=1)
+- [ ] `UpgradePool` (1개) → 위 SO들 리스트에 등록
+
+### Enemy 타입
+- [ ] `EnemyType_Skeleton` (HP30, 속도2.5, minWave=1, weight=3)
+- [ ] `EnemyType_Zombie` (HP60, 속도1.5, minWave=2, weight=2)
+- [ ] `EnemyType_Bat` (HP15, 속도4, minWave=3, weight=1)
+- [ ] 각 타입의 prefab 필드에 알맞은 Enemy 프리팹 연결
+- [ ] WaveSpawner.enemyTypes 배열에 등록 (enemyPrefab은 폴백용)
+
+## 10. 추가 동작 테스트
+
+### 체력 / 사망
+- [ ] 적이 플레이어에 닿으면 HP가 0.5초마다 감소
+- [ ] 무적 시간(0.5초) 내 추가 데미지 차단되는지 확인
+- [ ] HP 0 → GameOver 패널 활성화, Time.timeScale=0
+- [ ] GameManager.Restart() 호출로 씬 재시작 가능
+
+### XP / 레벨업
+- [ ] 적 사망 시 XP 오브 드롭
+- [ ] 플레이어 2.5 거리 내 XP 오브가 끌려옴
+- [ ] 충돌 시 XP 누적, XP Slider 갱신
+- [ ] 임계치 도달 시 LevelUpPanel 표시 + Time.timeScale=0
+- [ ] 카드 클릭 → 업그레이드 적용 + 패널 닫힘 + 게임 재개
+
+### 업그레이드 효과
+- [ ] DamageMul 카드 선택 후 발사체 데미지 증가 (콘솔 또는 적 HP 감소 폭으로 확인)
+- [ ] CooldownReduce → 발사 간격 짧아짐
+- [ ] SpeedMul → 플레이어 이동 속도 빨라짐
+- [ ] MaxHpAdd → HP Slider 최대치 증가 + 즉시 회복
+- [ ] UnlockSlotA/B → MagicCaster 슬롯 변경 (다음 발사가 다른 마법으로)
+
+### 적 다양화
+- [ ] 웨이브 1: Skeleton만 등장
+- [ ] 웨이브 2: Zombie 등장 시작
+- [ ] 웨이브 3+: Bat 등장 시작
+- [ ] 가중치대로 비율 대략 유지되는지 (육안)
+
+## 11. 추가 알려진 한계
+
+- ❗ **사망 시 자동 재시작 없음** — GameOver 패널에 Restart 버튼 직접 만들어 `GameManager.Instance.Restart()` 호출 연결 필요
+- ❗ **업그레이드 효과 영구 — 씬 재시작 시 초기화** — 메타 진행(영구 업그레이드)은 별도 시스템 필요
+- ❗ **Pickup 풀 사전 등록 안 됨** — XpOrb 프리팹은 첫 사용 시 Instantiate, 이후 풀링됨
+
+---
+
 ## 문제 발생 시 보고 양식
 
 ```
