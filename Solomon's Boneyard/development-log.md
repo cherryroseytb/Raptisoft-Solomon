@@ -341,3 +341,22 @@ Scripts/
 ### 비고
 - 모든 핵심 로직은 유니티 에디터 없이도 동작 가능하도록 코드로 구현 완료.
 - 에셋(이미지, 사운드) 연결만으로 즉시 원작과 동일한 동작 구현 가능 상태.
+
+## 2026-05-14 (코드 리뷰 & 로비 NPC 상호작용 방식 확정)
+
+### 버그 수정
+- **EnemyController.TakeDamage**: Shock/Poison 스위치 케이스 분리.  
+  `_poisonUntil` 미선언 + `_shockUntil` unreachable 코드 수정.  
+  Poison DoT (1초 주기, `_poisonUntil` 독립 타이머) 추가.
+- **EnemyController.Die()**: `MetaProgressionManager.Instance` null 체크 5회 중복 → 로컬 변수 캐싱. `SpawnPickup()` 헬퍼 추출로 ObjectPooler 패턴 중복 5개 제거.
+- **PlayerController**: `Camera.main` 매 프레임 태그 탐색 → Awake에서 `_mainCamera` 캐싱.
+
+### 원작 확인: 로비 NPC 상호작용 방식
+- **Keep / Dark**: 플레이어 캐릭터가 걸어서 NPC에 근접 → 자동 상호작용.
+- **Boneyard**: 로비에서 캐릭터가 이동하지 않음. **터치로 NPC를 직접 선택** → 상호작용.
+  - `LobbyNpcTouchSelector.cs` + `LobbyNpcInteractable.cs`로 구현 완료.
+  - 카메라 고정 상태에서 Physics2D.OverlapPoint로 탭한 NPC 탐지.
+
+### 현재 개발 방침
+- 실시간 Unity 테스트 불가 환경 → **코드 선행 개발 우선**.
+- 테스트는 TEST_CHECKLIST.md에 누적 기록. Unity 열릴 때 일괄 검증.

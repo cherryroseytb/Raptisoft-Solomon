@@ -577,6 +577,40 @@ Project 창 우클릭 → Create > SolomonCopy > Upgrade
 
 ---
 
+## 38. 로비 NPC 터치 상호작용 (Boneyard 방식)
+
+> **원작 확인**: Boneyard 로비에서 캐릭터는 이동하지 않음. 화면 터치로 NPC를 선택.
+
+### LobbyNpcTouchSelector 설정
+- [ ] 로비 씬에 빈 GameObject `LobbyTouchSelector` 생성 → `LobbyNpcTouchSelector.cs` 부착
+- [ ] Inspector: `npcLayer` = NPC 레이어로 설정
+- [ ] 로비 카메라가 고정 상태인지 확인 (이동 없음)
+
+### LobbyNpcInteractable 설정 (각 NPC마다)
+- [ ] 마녀 NPC GameObject에 `LobbyNpcInteractable.cs` 부착
+- [ ] `CircleCollider2D` (IsTrigger) 부착 — 탭 인식 영역
+- [ ] `shopService` 필드에 `LobbyShopService` 연결
+- [ ] 마녀 탭 → 상점 UI 패널 열림 확인
+
+### 동작 검증
+- [ ] 마녀 탭 → 마녀 NPC 패널(서비스/운명 목록) 정상 표시
+- [ ] 무덤지기 NPC 탭 → 무덤지기 패널 정상 표시
+- [ ] NPC 이외 빈 공간 탭 → 아무 반응 없음 (선택 해제)
+- [ ] 두 NPC 탭 전환 — 이전 패널 닫히고 새 패널 열림
+
+---
+
+## 39. 코드 리뷰 결과 — 상태이상 검증
+
+> **수정 내용**: EnemyController Shock/Poison 버그 수정 (2026-05-14)
+
+- [ ] **Shock 상태이상**: 적 피격 후 최대 0.6초 행동 불능 확인
+- [ ] **Poison 상태이상**: 피격 후 1초 주기 DoT 데미지 확인
+- [ ] **Burn vs Poison 비교**: Burn은 0.5초 주기, Poison은 1초 주기 — 별도 동작 확인
+- [ ] 상태이상 중복 적용 시 더 긴 쪽 유지 (갱신되지 않고 연장)
+
+---
+
 ## 문제 발생 시 보고 양식
 
 ```
