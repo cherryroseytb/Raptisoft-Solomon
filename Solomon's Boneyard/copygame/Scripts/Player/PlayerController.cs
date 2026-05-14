@@ -32,11 +32,17 @@ namespace SolomonCopy.Player
         private MagicCaster _caster;
         private Vector2 _moveInput;
         private Vector2 _aimDir;
+#if UNITY_EDITOR || UNITY_STANDALONE
+        private Camera _mainCamera;
+#endif
 
         private void Awake()
         {
             _rb = GetComponent<Rigidbody2D>();
             _caster = GetComponent<MagicCaster>();
+#if UNITY_EDITOR || UNITY_STANDALONE
+            _mainCamera = Camera.main;
+#endif
         }
 
         private void Update()
@@ -80,8 +86,8 @@ namespace SolomonCopy.Player
             {
 #if UNITY_EDITOR || UNITY_STANDALONE
                 // 마우스 폴백: 마우스 위치를 향한 방향
-                Vector3 mouseWorld = Camera.main != null
-                    ? Camera.main.ScreenToWorldPoint(Input.mousePosition)
+                Vector3 mouseWorld = _mainCamera != null
+                    ? _mainCamera.ScreenToWorldPoint(Input.mousePosition)
                     : Vector3.zero;
                 Vector2 toMouse = (Vector2)mouseWorld - _rb.position;
                 // 좌클릭 시에만 발사 의도가 있다고 봄

@@ -44,8 +44,11 @@ namespace SolomonCopy.Enemy
         private float _slowUntil;
         private float _burnUntil;
         private float _shockUntil;
+        private float _poisonUntil;
         private float _nextBurnTick;
+        private float _nextPoisonTick;
         private int _burnDamagePerTick = 1;
+        private int _poisonDamagePerTick = 1;
 
         private void Awake()
         {
@@ -55,7 +58,7 @@ namespace SolomonCopy.Enemy
         private void OnEnable()
         {
             _hp = maxHp;
-            _slowUntil = 0f; _burnUntil = 0f; _shockUntil = 0f;
+            _slowUntil = 0f; _burnUntil = 0f; _shockUntil = 0f; _poisonUntil = 0f;
             if (player == null)
             {
                 var p = GameObject.FindGameObjectWithTag("Player");
@@ -80,6 +83,11 @@ namespace SolomonCopy.Enemy
                 _nextBurnTick = Time.time + 0.5f;
                 ApplyDamage(_burnDamagePerTick);
             }
+            if (Time.time < _poisonUntil && Time.time >= _nextPoisonTick)
+            {
+                _nextPoisonTick = Time.time + 1f;
+                ApplyDamage(_poisonDamagePerTick);
+            }
 
             Vector2 dir = ((Vector2)player.position - _rb.position).normalized;
             _rb.MovePosition(_rb.position + dir * speed * Time.fixedDeltaTime);
@@ -100,10 +108,11 @@ namespace SolomonCopy.Enemy
                     if (_nextBurnTick < Time.time) _nextBurnTick = Time.time + 0.5f;
                     break;
                 case StatusEffect.Shock:
+                    _shockUntil = Mathf.Max(_shockUntil, Time.time + Mathf.Min(duration, 0.6f));
+                    break;
                 case StatusEffect.Poison:
                     _poisonUntil = Mathf.Max(_poisonUntil, Time.time + duration);
-                    break;
-                    _shockUntil = Mathf.Max(_shockUntil, Time.time + Mathf.Min(duration, 0.6f));
+                    if (_nextPoisonTick < Time.time) _nextPoisonTick = Time.time + 1f;
                     break;
             }
         }
@@ -116,34 +125,28 @@ namespace SolomonCopy.Enemy
 
         private void Die()
         {
-            if (GameManager.Instance != null) GameManager.Instance.AddScore(10);
-            if (GameManager.Instance != null) GameManager.Instance.AddKill(1);
-            float goldChanceMul = MetaProgressionManager.Instance != null ? MetaProgressionManager.Instance.GetGoldDropChanceMultiplier() : 1f;
-            float ringChanceMul = MetaProgressionManager.Instance != null ? MetaProgressionManager.Instance.GetRingDropChanceMultiplier() : 1f;
-            float bonusChanceMul = MetaProgressionManager.Instance != null ? MetaProgressionManager.Instance.GetBonusDropChanceMultiplier() : 1f;
-            float goldAmountMul = MetaProgressionManager.Instance != null ? MetaProgressionManager.Instance.GetGoldDropAmountMultiplier() : 1f;
+            var gm = GameManager.Instance;
+            if (gm != null) { gm.AddScore(10); gm.AddKill(1); }
 
-            // XP 오브 드롭
+            var meta = MetaProgressionManager.Instance;
+            float goldChanceMul = meta != null ? meta.GetGoldDropChanceMultiplier() : 1f;
+            float ringChanceMul = meta != null ? meta.GetRingDropChanceMultiplier() : 1f;
+            float bonusChanceMul = meta != null ? meta.GetBonusDropChanceMultiplier() : 1f;
+            float goldAmountMul = meta != null ? meta.GetGoldDropAmountMultiplier() : 1f;
+
             if (xpOrbPrefab != null)
             {
-                GameObject orb = ObjectPooler.Instance != null
-                    ? ObjectPooler.Instance.Spawn(xpOrbPrefab, transform.position, Quaternion.identity)
-                    : Instantiate(xpOrbPrefab, transform.position, Quaternion.identity);
-                var x = orb.GetComponent<Pickup.XpOrb>();
-                if (x != null)
+                var orb = SpawnPickup(xpOrbPrefab).GetComponent<Pickup.XpOrb>();
+                if (orb != null)
                 {
-                    float xpMul = MetaProgressionManager.Instance != null ? MetaProgressionManager.Instance.GetXpOrbAmountMultiplier() : 1f;
-                    x.xpAmount = Mathf.Max(1, Mathf.RoundToInt(xpAmount * xpMul));
+                    float xpMul = meta != null ? meta.GetXpOrbAmountMultiplier() : 1f;
+                    orb.xpAmount = Mathf.Max(1, Mathf.RoundToInt(xpAmount * xpMul));
                 }
             }
 
-            // 골드 드롭
             if (goldPickupPrefab != null && Random.value <= Mathf.Clamp01(goldDropChance * goldChanceMul))
             {
-                GameObject gold = ObjectPooler.Instance != null
-                    ? ObjectPooler.Instance.Spawn(goldPickupPrefab, transform.position, Quaternion.identity)
-                    : Instantiate(goldPickupPrefab, transform.position, Quaternion.identity);
-                var g = gold.GetComponent<Pickup.GoldPickup>();
+                var g = SpawnPickup(goldPickupPrefab).GetComponent<Pickup.GoldPickup>();
                 if (g != null)
                 {
                     int rolled = Random.Range(goldMin, goldMax + 1);
@@ -151,50 +154,37 @@ namespace SolomonCopy.Enemy
                 }
             }
 
-            // 반지 드롭
-            if (ringPickupPrefab != null && Random.value <= Mathf.Clamp01(ringDropChance * ringChanceMul) && MetaProgressionManager.Instance != null)
+            if (ringPickupPrefab != null && meta != null && Random.value <= Mathf.Clamp01(ringDropChance * ringChanceMul))
             {
-                var ring = MetaProgressionManager.Instance.CreateRandomRing();
+                var ring = meta.CreateRandomRing();
                 if (ring != null)
                 {
-                    GameObject pickup = ObjectPooler.Instance != null
-                        ? ObjectPooler.Instance.Spawn(ringPickupPrefab, transform.position, Quaternion.identity)
-                        : Instantiate(ringPickupPrefab, transform.position, Quaternion.identity);
-                    var rp = pickup.GetComponent<Pickup.RingPickup>();
+                    var rp = SpawnPickup(ringPickupPrefab).GetComponent<Pickup.RingPickup>();
                     if (rp != null) rp.SetRingData(ring);
                 }
             }
 
-            // 필드 보너스 드롭 (스킬포인트 / 랜덤스킬포인트 / 4배데미지)
             if (fieldBonusPickupPrefab != null && Random.value <= Mathf.Clamp01(fieldBonusDropChance * bonusChanceMul))
             {
-                GameObject bonus = ObjectPooler.Instance != null
-                    ? ObjectPooler.Instance.Spawn(fieldBonusPickupPrefab, transform.position, Quaternion.identity)
-                    : Instantiate(fieldBonusPickupPrefab, transform.position, Quaternion.identity);
-                var bp = bonus.GetComponent<Pickup.FieldBonusPickup>();
-                if (bp != null)
-                {
-                    int r = Random.Range(1, 4);
-                    bp.SetBonus((Pickup.FieldBonusPickup.FieldBonusType)r);
-                }
+                var bp = SpawnPickup(fieldBonusPickupPrefab).GetComponent<Pickup.FieldBonusPickup>();
+                if (bp != null) bp.SetBonus((Pickup.FieldBonusPickup.FieldBonusType)Random.Range(1, 4));
             }
 
-            // 보스 전용 보상: 반지 / 스킬포인트 / 4배데미지 중 하나
             if (isBoss && bossRewardPickupPrefab != null)
             {
-                GameObject reward = ObjectPooler.Instance != null
-                    ? ObjectPooler.Instance.Spawn(bossRewardPickupPrefab, transform.position, Quaternion.identity)
-                    : Instantiate(bossRewardPickupPrefab, transform.position, Quaternion.identity);
-                var br = reward.GetComponent<Pickup.BossRewardPickup>();
-                if (br != null)
-                {
-                    int r = Random.Range(1, 4);
-                    br.SetReward((Pickup.BossRewardPickup.BossRewardType)r);
-                }
+                var br = SpawnPickup(bossRewardPickupPrefab).GetComponent<Pickup.BossRewardPickup>();
+                if (br != null) br.SetReward((Pickup.BossRewardPickup.BossRewardType)Random.Range(1, 4));
             }
 
             if (ObjectPooler.Instance != null) ObjectPooler.Instance.Return(gameObject);
             else gameObject.SetActive(false);
+        }
+
+        private GameObject SpawnPickup(GameObject prefab)
+        {
+            return ObjectPooler.Instance != null
+                ? ObjectPooler.Instance.Spawn(prefab, transform.position, Quaternion.identity)
+                : Instantiate(prefab, transform.position, Quaternion.identity);
         }
 
         private float _nextContactDamageAt;
