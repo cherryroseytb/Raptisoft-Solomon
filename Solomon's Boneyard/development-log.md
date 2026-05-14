@@ -139,3 +139,179 @@ Scripts/
 - `Keep`/`Dark`: 텍스트 데이터 직접 확인 가능(`items.txt`, `items.cfg` 등).
 - `Boneyard`: 핵심 데이터 일부 난독화 상태로 직접 추출 어려움.
 - 따라서 Boneyard 특화 항목은 플레이 관측/공략/위키 정보로 우선 복원 후, 테스트로 보정.
+
+## 2026-05-14 (후속): Services/Fates/토닉 및 런타임 효과 1차 구현
+
+### 완료된 구현
+- **Services/Fates 카탈로그 구조 추가**
+  - `LobbyCatalogSO` (Service/Fate 엔트리, 표시명/설명/가격/반복구매 플래그)
+  - `LobbyShopService` (구매/장착/해제/기본표 자동채우기)
+- **토닉 시스템 구현**
+  - 토닉 기본가 1000
+  - `ReduceTonicCost` 누적 할인(5% 가정)
+  - 가격식: `round(base * (1-discount)^n)` + 최소가 하한
+  - 토닉은 한 판 한정 슬롯 확장으로 적용
+- **Services 런타임 효과 1차 연결**
+  - `MoreGoldDrops`: 골드 드롭량/확률 증가
+  - `MoreDrops`: 반지 드롭 확률 증가
+  - `Hardcore`: 주고받는 피해 2배
+  - `MasterOfOffense`: 데미지 증가 + 쿨다운 감소(대체 구현)
+  - `AutoPotion`: 위기 체력에서 1회 자동 회복
+  - `BlazeOfGlory`: 사망 시 주변 폭발 피해
+
+### 아직 남은 항목
+- `MoreDrops`의 스킬북/4배 데미지 보너스 드롭 연동
+- `MasterOfOffense` 원형(주공격 서브스킬 직접 부여) 구현
+- Services/Fates UI 실배치 및 실제 버튼 바인딩
+
+## 2026-05-14 (후속): Fates 상시 효과 런타임 1차 연결
+
+### 완료된 연결
+- `UnlockScavenger`: 무덤지기 서비스 접근 제어에 연결 (미해금 시 접근 차단)
+- `BossMonsters`: `WaveSpawner` 보스 웨이브 스폰 훅 연결
+  - `bossEnemyPrefab`, `bossWaveInterval` 기반 주기 스폰
+- `MoreGraveyards`: 사용 가능 묘지 수 조회 API 추가 (`1 -> 4`)
+- 캐릭터/스킬 Fate: `IsCharacterUnlocked`, `IsSkillUnlockedByFate` 조회 API 추가
+
+### 남은 항목
+- 맵 선택 UI와 `MoreGraveyards` 실제 바인딩
+- 캐릭터 선택 UI와 캐릭터 해금 Fate 실제 바인딩
+- 보스 처치 보상(반지/스킬/4배 데미지 보너스) 전용 테이블/드롭 로직 분리
+
+## 2026-05-14 (후속): 선택 바인딩/보스보상 분리 1차
+
+### 추가 구현
+- `CharacterSelectionService`
+  - 기본 4캐릭터 항상 사용 가능
+  - Fate 해금 캐릭터(Griselda/Wegnus/Vorpus/Wazoo/Athicus/Andra) 조회 API 연결
+- `GraveyardSelectionService`
+  - `MoreGraveyards` 해금 여부에 따라 맵 슬롯 잠금 해제 개수 조회 API 제공
+- `RunCombatBuffs`
+  - 런타임 임시 전투 버프(4배 데미지) 관리
+- `BossRewardPickup`
+  - 보스 처치 시 랜덤 보상 1개(반지/스킬포인트/4배데미지) 처리
+- `EnemyController`
+  - 보스 플래그 및 보스 전용 보상 픽업 스폰 연결
+
+### 잔여 보정 포인트
+- 보스 출현 기준을 웨이브가 아닌 처치수 기반으로 전환 여부 결정
+- 보스 보상 확률 가중치/중복 규칙 조정
+
+## 2026-05-14 (후속): 로비 UI 바인딩 컴포넌트 추가
+
+### 추가된 UI 바인딩
+- `ServiceEntryButtonBinder`
+  - Services 항목의 해금/장착/해제 버튼 상태와 텍스트 갱신
+- `FateEntryButtonBinder`
+  - Fate 항목의 구매 버튼 상태와 잠금 상태 갱신
+- `CharacterSelectButtonBinder`
+  - Fate 해금 여부에 따른 캐릭터 버튼 잠금/오버레이 처리
+- `GraveyardSelectButtonBinder`
+  - MoreGraveyards 해금 여부에 따른 맵 버튼 잠금 처리
+
+### 의미
+- 로비 패널을 프리팹/버튼 단위로 바로 연결 가능한 상태가 됨.
+- 동적 리스트 생성 없이도 수동 배치 방식으로 즉시 동작 검증 가능.
+
+## 2026-05-14 (후속): 킬 기반 보스/로비 카탈로그 동적 생성 반영
+
+### 추가 구현
+- `WaveSpawner`
+  - BossMonsters 출현 기준을 웨이브 주기 기반에서 **킬수 기반 기본값**으로 전환.
+  - 기본 파라미터: 첫 보스 `400킬`, 이후 `400킬`마다 반복.
+  - 호환성을 위해 기존 웨이브 기반 스폰은 옵션(`useKillBasedBossSpawn=false`)으로 유지.
+- `GameManager`
+  - `KillCount` 상태 추가, `AddKill()` API 추가.
+  - UI 표시를 `Wave + Kills`로 통합.
+- `EnemyController`
+  - 적 사망 시 `GameManager.AddKill(1)` 호출로 킬 카운트 누적.
+- `LobbyCatalogListBuilder` (신규)
+  - `LobbyCatalogSO` 기반으로 Services/Fates 버튼 프리팹을 런타임 자동 생성.
+  - 수동 복제 배치 없이 카탈로그 변경만으로 로비 목록 반영 가능.
+- `LobbyTextTableSO` (신규)
+  - Services/Fates 표시명/설명 한글 테이블을 별도 SO로 관리.
+  - `LobbyCatalogListBuilder.textTable` 연결 시, 카탈로그 기본 텍스트를 런타임에 덮어써 UI 반영.
+- `ServiceEntryButtonBinder` / `FateEntryButtonBinder`
+  - `Configure(...)` API 추가.
+  - `displayName/description` 표시 바인딩 지원.
+
+### 남은 항목
+- 한글 표시명/설명 테이블을 카탈로그 에셋에 채우기.
+- UI 프리팹에서 `descriptionText` 레퍼런스 연결.
+
+## 2026-05-14 (후속): MoreDrops 비반지 드롭 확장 + MasterOfOffense 시작형 전환
+
+### 추가 구현
+- `FieldBonusPickup` (신규)
+  - 일반 적 처치 시 필드에서 획득 가능한 보너스 픽업 추가.
+  - 타입: `SkillPoint`, `RandomSkillPoint`, `Damage4x`.
+  - 상단 메시지 피드 연동.
+- `EnemyController`
+  - `fieldBonusPickupPrefab`, `fieldBonusDropChance` 추가.
+  - 사망 시 확률 드롭 후 보너스 타입 랜덤 부여.
+- `MetaProgressionManager`
+  - `GetBonusDropChanceMultiplier()` 추가.
+  - `MoreDrops` 장착 시 비반지 보너스 드롭에도 동일 배율 적용.
+- `RunStartBootstrap`
+  - `MasterOfOffense`를 발사 시 상시 배율이 아닌 **런 시작 1회 보정**으로 전환.
+  - `UpgradeApplier.ApplyExternalMultipliers(...)`로 시작 데미지/쿨다운 보정 적용.
+- `MagicCaster`
+  - 기존 MasterOfOffense 상시 배율 적용 코드 제거(중복 보정 방지).
+
+### 비고
+- MasterOfOffense는 아직 원형(주공격 서브스킬 2개를 직접 +1 부여) 완전복원은 아니며,
+  현재는 시작 스탯 보정으로 동등 체감 확보하는 대체 구현 상태.
+
+## 2026-05-14 (후속): MasterOfOffense 주공격 보너스 훅/드롭 가드/텍스트 자동채움
+
+### 추가 구현
+- `MagicCaster`
+  - 런 시작 보너스 레벨 훅 추가: `ConfigureStartSkillBonuses(allSkillBonus, masterPrimaryBonus)`.
+  - 발사 시 시작 보너스 레벨을 데미지/쿨다운에 환산 적용.
+  - `slotA`를 주공격으로 간주해 `MasterOfOffense` 보너스 레벨을 적용.
+- `RunStartBootstrap`
+  - `MetaProgressionManager.baseSkillPointBonusOnStart` 와 `MasterOfOffense` 장착 상태를 읽어
+    캐스터 시작 보너스에 주입.
+  - 기존 MasterOfOffense 상시 배율 대체 코드는 제거.
+- `EnemyController`
+  - `FieldBonusPickup` 프리팹 누락/오배치 가드 추가(`OnValidate`, `OnEnable`).
+  - 연결 오류 시 경고 로그 출력 및 보너스 드롭 경로 자동 비활성화.
+- `LobbyTextTableSO`
+  - `Fill Korean Defaults` 컨텍스트 메뉴 추가.
+  - Services/Fates 전체 enum 기준 기본 표시명/설명 자동 생성.
+
+### 의미
+- MasterOfOffense가 "런 시작에 주공격 계열이 더 강한 상태로 시작"한다는 원형 의도에 더 근접.
+- 에디터 연결 실수로 인한 런타임 누락 이슈를 사전 차단.
+- 한글 텍스트 테이블 작성 비용을 크게 줄여 UI 정리 속도 향상.
+
+## 2026-05-14 (후속): 메타 상태 변경 이벤트 도입
+
+### 추가 구현
+- `MetaProgressionManager`
+  - 정적 이벤트 `MetaStateChanged` 추가.
+  - 골드 변경, 서비스/페이트 구매, 장착/해제, 토닉 구매, 무덤 세션 상태 변경 시 이벤트 발행.
+- `ServiceEntryButtonBinder`, `FateEntryButtonBinder`
+  - `OnEnable`에서 이벤트 구독, `OnDisable`에서 해제.
+  - 개별 버튼 클릭 외에도 외부 상태 변화(골드 감소/슬롯 변화)에 즉시 반응해 버튼 상태 동기화.
+
+## 2026-05-14 (후속): MagicScavenger / CreativeCasting / SecondSecondary 연결
+
+### 추가 구현
+- `MetaProgressionManager`
+  - `IsMagicScavengerEnabled`, `IsCreativeCastingEnabled`, `IsSecondSecondaryEnabled` 추가.
+  - `GetXpOrbAmountMultiplier`, `GetXpOrbAttractRadiusMultiplier`, `GetLevelUpChoicesBonus` 추가.
+- `EnemyController`
+  - XP 오브 드롭 시 `MagicScavenger` 배율 적용(오브 XP량 증가).
+- `XpOrb`
+  - `MagicScavenger` 활성 시 흡수 반경 증가.
+  - 오브젝트 풀 재사용 시 반경 누적 버그 방지를 위해 기본 반경 캐시 후 매 활성화마다 재계산.
+- `LevelUpController`
+  - `CreativeCasting` 활성 시 레벨업 선택지 +1.
+  - 현재 UI 카드 수를 초과하지 않도록 안전 clamp 적용.
+- `RunStartBootstrap`
+  - `SecondSecondary` 활성 시 시작 시점에 `slotA/현재 slotB`와 다른 랜덤 기본 마법을 `slotB`에 부여.
+
+### 비고
+- SecondSecondary는 현재 기본 마법 풀(enum) 기준 랜덤이며, 실제 원작의 "보조 스킬 풀"과 1:1 동일하지는 않음.
+- 추후 보조 스킬 카탈로그 분리 시 해당 랜덤 풀을 데이터 기반으로 전환 예정.

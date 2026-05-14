@@ -258,6 +258,86 @@ Project 창 우클릭 → Create > SolomonCopy > Upgrade
 - [ ] 적 처치 시 확률적으로 골드 픽업 드롭
 - [ ] 골드 픽업이 플레이어 근처에서 흡착
 - [ ] 수집 시 `GameManager` Gold UI 증가
+
+---
+
+# 14차 추가 (2026-05-14 후속) — 보스 킬수 트리거/로비 카탈로그 자동생성
+
+## 14. 보스 출현 기준 (킬수)
+
+- [ ] `WaveSpawner.useKillBasedBossSpawn = true`
+- [ ] `bossFirstSpawnAtKills = 400`, `bossSpawnEveryKills = 400`
+- [ ] BossMonsters Fate 해금 전: 400킬 넘어도 보스 미출현
+- [ ] BossMonsters Fate 해금 후: 400킬 시점 첫 보스 출현
+- [ ] 이후 800/1200킬에서 보스 반복 출현
+- [ ] 옵션으로 `useKillBasedBossSpawn = false` 시 기존 `bossWaveInterval` 방식으로 동작
+
+## 15. 킬 카운트/UI
+
+- [ ] 적 사망 시 `KillCount`가 +1 누적
+- [ ] `Wave` 텍스트에 `Kills`가 함께 표시됨
+- [ ] 씬 재시작 시 `KillCount` 초기화
+
+## 16. 로비 동적 리스트 생성
+
+- [ ] 빈 GO에 `LobbyCatalogListBuilder` 부착
+- [ ] `shop`, `serviceListRoot`, `serviceEntryPrefab`, `fateListRoot`, `fateEntryPrefab` 연결
+- [ ] 플레이 진입 시 Services/Fates 항목이 카탈로그 개수만큼 자동 생성
+- [ ] `ServiceEntryButtonBinder.descriptionText`, `FateEntryButtonBinder.descriptionText` 연결 시 설명이 표시됨
+- [ ] 카탈로그 항목명/설명 수정 후 재실행하면 UI에 반영됨
+
+## 17. MoreDrops 비반지 드롭 확장
+
+- [ ] `EnemyController.fieldBonusPickupPrefab`에 `FieldBonusPickup` 프리팹 연결
+- [ ] 기본 드롭 확률(`fieldBonusDropChance`)에서 보너스 픽업이 드롭됨
+- [ ] `MoreDrops` 미장착 대비 장착 시 보너스 픽업 체감 드롭률이 증가함
+- [ ] 보너스 픽업 타입 3종 확인:
+- [ ] `Skill Point +1` 메시지 표시 및 즉시 레벨업 선택 발생
+- [ ] `Random Skill Point +1` 메시지 표시 및 즉시 레벨업 선택 발생
+- [ ] `Damage x4` 메시지 표시 및 일정 시간 화력 증가
+
+## 18. MasterOfOffense 시작형 보정
+
+- [ ] `MasterOfOffense` 장착 없이 시작한 런과 비교해 시작 화력/쿨다운이 유의미하게 강화됨
+- [ ] 강화가 런 시작 1회 적용이며, 발사마다 중복 누적되지 않음
+- [ ] 기존 Hardcore/반지/기타 배율과 충돌 없이 동작
+
+## 19. 프리팹 가드/한글 테이블 자동화
+
+- [ ] `EnemyController.fieldBonusDropChance > 0`인데 프리팹이 비면 경고 로그 출력
+- [ ] `fieldBonusPickupPrefab`에 `FieldBonusPickup` 컴포넌트가 없으면 경고 후 자동 비활성화
+- [ ] `LobbyTextTableSO` 생성 후 `Fill Korean Defaults` 실행 시 Services/Fates 엔트리 자동 생성
+- [ ] `LobbyCatalogListBuilder.textTable` 연결 시 버튼 표시명/설명이 한글 테이블값으로 출력
+
+## 20. MasterOfOffense 주공격 보너스 레벨
+
+- [ ] `Plus1/+2 to All Skills` 장착 시 시작 화력/쿨다운 보정이 증가
+- [ ] `MasterOfOffense` 장착 시 `slotA` 계열이 `slotB` 대비 더 강한 시작 보정 적용
+- [ ] 콤보 마법 발사 시 두 슬롯 보너스 평균치로 보정 적용
+
+## 21. 로비 버튼 자동 동기화
+
+- [ ] Services/Fates 목록에서 항목 구매 시 다른 항목의 버튼 상태가 즉시 갱신됨
+- [ ] 골드 변화(구매/토닉/무덤입장) 직후 버튼 활성/비활성 상태가 자동 반영됨
+- [ ] 슬롯 여유가 없어 장착 불가 상태일 때 equip 버튼이 즉시 비활성됨
+
+## 22. MagicScavenger
+
+- [ ] `MagicScavenger` 미장착 대비 장착 시 XP 오브 획득량이 증가함
+- [ ] `MagicScavenger` 장착 시 XP 오브 흡수 반경이 증가함
+- [ ] 오브젝트 풀 재사용 시 흡수 반경이 비정상적으로 계속 커지지 않음
+
+## 23. CreativeCasting
+
+- [ ] `CreativeCasting` 장착 시 레벨업 선택지 수가 +1 증가
+- [ ] 카드 UI 개수를 초과하지 않게 표시됨(현재 카드 수 기준 clamp)
+- [ ] 미장착 시 기존 선택지 수로 동작
+
+## 24. SecondSecondary
+
+- [ ] `SecondSecondary` 장착 시 시작 직후 `slotB`가 랜덤 보조 마법으로 변경됨
+- [ ] 랜덤 결과가 `None`, `slotA`, 기존 `slotB`와 중복되지 않음
+- [ ] 미장착 시 기존 시작 슬롯 유지
 - [ ] 씬 재시작 후에도 `MetaProgressionManager.totalGold` 누적 유지 확인
 
 ### 임시 슬롯 확장
@@ -381,6 +461,119 @@ Project 창 우클릭 → Create > SolomonCopy > Upgrade
 - [ ] 로비에서 플레이어가 NPC 근접 시 팝업 메뉴 노출
 - [ ] NPC에서 멀어지면 팝업 자동 닫힘
 - [ ] 런 시작 후 동일 팝업이 노출되지 않음
+
+---
+
+# 7차 추가 (2026-05-14 후속5) — Services/Fates 카탈로그 + 상점 코어 + 토닉
+
+## 24. 데이터 카탈로그
+
+- [ ] `LobbyCatalogSO` 생성 (`Create > SolomonCopy > Meta > LobbyCatalog`)
+- [ ] `LobbyShopService.catalog`에 연결
+- [ ] `Fill Catalog From Meta Defaults` 실행 시 Services/Fates 기본 엔트리 자동 생성 확인
+- [ ] 각 엔트리 `displayName/description/unlockCost` 수동 보정
+
+## 25. 로비 우측 NPC 상점 코어
+
+- [ ] `TryUnlockService`, `TryEquipService`, `TryUnequipService` 동작 확인
+- [ ] `TryUnlockFate` 동작 확인
+- [ ] `ReduceTonicCost`가 반복 구매형으로 동작하는지 확인
+
+## 26. 토닉 시스템
+
+- [ ] 기본 토닉 가격이 1000인지 확인
+- [ ] `GetCurrentTonicCost() = round(1000 * 0.95^n)` 로 감소하는지 확인
+- [ ] 토닉 최소가격 하한(`tonicMinCost`)이 적용되는지 확인
+- [ ] `TryBuyPerkTonic` 구매 시 해당 판 한정 슬롯 +1 되는지 확인
+- [ ] 사망 시 임시 슬롯 확장 초기화 확인
+
+---
+
+# 8차 추가 (2026-05-14 후속6) — Services 런타임 효과 1차 연결
+
+## 27. 전투 효과 검증
+
+- [ ] `MoreGoldDrops` 장착 시 골드 드롭량 증가(약 2배) 확인
+- [ ] `MoreGoldDrops` 장착 시 골드 드롭 확률이 추가 증가하는지 확인
+- [ ] `MoreDrops` 장착 시 반지 드롭 확률이 증가하는지 확인
+- [ ] `Hardcore` 장착 시 플레이어 입는 피해 2배 확인
+- [ ] `Hardcore` 장착 시 플레이어가 주는 피해 2배 확인
+- [ ] `MasterOfOffense` 장착 시 데미지 증가 + 쿨다운 감소 적용 확인
+
+## 28. 생존 효과 검증
+
+- [ ] `AutoPotion` 장착 시 HP 임계 구간에서 1회 자동 회복 발동 확인
+- [ ] 자동 회복 발동 후 상단 메시지 표시 확인
+- [ ] `BlazeOfGlory` 장착 시 사망 순간 주변 적 폭발 피해 적용 확인
+
+## 29. 현재 한계
+
+- ❗ `MoreDrops`는 현재 반지 드롭률에만 연결됨(스킬북/4배 보너스 드롭은 후속 연결 필요)
+- ❗ `MasterOfOffense`는 현재 데미지/쿨다운 보정으로 1차 대체 구현됨(서브스킬 직접 부여는 후속)
+
+---
+
+# 9차 추가 (2026-05-14 후속7) — Fates 상시 효과 런타임 연결 1차
+
+## 30. Fate 효과 검증
+
+- [ ] `BossMonsters` 해금 시 `WaveSpawner`가 보스 웨이브 주기(`bossWaveInterval`)로 보스를 추가 스폰하는지 확인
+- [ ] `BossMonsters` 미해금 시 보스 추가 스폰이 없는지 확인
+- [ ] `MoreGraveyards` 해금 시 사용 가능 묘지 수 조회값이 1 -> 4로 바뀌는지 확인
+- [ ] `UnlockScavenger` 미해금 시 무덤지기 입장/선택 API가 막히는지 확인
+- [ ] `UnlockScavenger` 해금 시 무덤지기 API가 정상 동작하는지 확인
+
+## 31. 현재 한계
+
+- ❗ `MoreGraveyards`는 현재 조회 API로만 연결됨(실제 맵 선택 UI 바인딩은 후속)
+- ❗ 캐릭터/스킬 해금 Fate는 현재 상태 조회 API 중심(선택 UI 및 실제 진입 제한 연동은 후속)
+
+---
+
+# 10차 추가 (2026-05-14 후속8) — 캐릭터/맵 선택 바인딩 + 보스 보상 분리
+
+## 32. 캐릭터/맵 선택 바인딩
+
+- [ ] `CharacterSelectionService`를 캐릭터 선택 UI에서 호출해 기본4/해금캐릭터 노출이 분리되는지 확인
+- [ ] `GraveyardSelectionService`로 맵 슬롯 index 0~3 잠금 상태가 반영되는지 확인
+- [ ] `MoreGraveyards` 해금 전/후 맵 선택 가능 개수 변화 확인
+
+## 33. 보스 보상 분리
+
+- [ ] 보스 프리팹 `EnemyController.isBoss=true` 설정
+- [ ] 보스 프리팹에 `bossRewardPickupPrefab` 연결
+- [ ] 보스 처치 시 보상 픽업 1개 생성 확인
+- [ ] 보상 종류가 `반지 / 스킬포인트 / 4배데미지` 중 랜덤인지 확인
+- [ ] 4배데미지 보상 획득 시 일정시간 후 버프 종료되는지 확인
+
+## 34. 현재 한계
+
+- ❗ 보스 스폰 주기는 현재 웨이브 주기 기반(킬수 400 기준과 차이 있음)
+- ❗ 스킬포인트 보상은 현재 `레벨업 선택 1회`로 대체 구현됨
+
+---
+
+# 11차 추가 (2026-05-14 후속9) — 로비 UI 실제 바인딩 컴포넌트
+
+## 35. Services/Fates 패널 바인딩
+
+- [ ] Services 항목 프리팹/버튼에 `ServiceEntryButtonBinder` 부착
+- [ ] Fate 항목 프리팹/버튼에 `FateEntryButtonBinder` 부착
+- [ ] 각 바인더에 `LobbyShopService` 참조 연결
+- [ ] `OnClickUnlock/Equip/Unequip/Buy` 버튼 이벤트 연결
+- [ ] 상태 텍스트(locked/unlocked/equipped) 갱신 확인
+
+## 36. 캐릭터/맵 선택 바인딩
+
+- [ ] 캐릭터 버튼에 `CharacterSelectButtonBinder` 부착
+- [ ] `characterId`를 실제 캐릭터 키(`Sirmin`, `Wazoo` 등)로 입력
+- [ ] 맵 버튼에 `GraveyardSelectButtonBinder` 부착
+- [ ] `mapIndex`(0~3) 별 잠금 상태 반영 확인
+
+## 37. 남은 후속
+
+- ❗ 동적 리스트(카탈로그 기반 자동 생성 UI)는 아직 미구현
+- ❗ 한글 표시명/설명 로컬라이즈 테이블 연결 필요
 
 ---
 
