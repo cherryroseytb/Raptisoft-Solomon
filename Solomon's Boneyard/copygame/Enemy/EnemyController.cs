@@ -21,6 +21,10 @@ namespace SolomonCopy.Enemy
         [Header("드롭")]
         public GameObject xpOrbPrefab;  // 사망 시 스폰할 XpOrb 프리팹 (선택)
         public int xpAmount = 1;
+        public GameObject goldPickupPrefab;
+        [Range(0f, 1f)] public float goldDropChance = 0.45f;
+        public int goldMin = 1;
+        public int goldMax = 4;
 
         [Header("참조")]
         public Transform player;
@@ -110,6 +114,16 @@ namespace SolomonCopy.Enemy
                     : Instantiate(xpOrbPrefab, transform.position, Quaternion.identity);
                 var x = orb.GetComponent<Pickup.XpOrb>();
                 if (x != null) x.xpAmount = xpAmount;
+            }
+
+            // 골드 드롭
+            if (goldPickupPrefab != null && Random.value <= goldDropChance)
+            {
+                GameObject gold = ObjectPooler.Instance != null
+                    ? ObjectPooler.Instance.Spawn(goldPickupPrefab, transform.position, Quaternion.identity)
+                    : Instantiate(goldPickupPrefab, transform.position, Quaternion.identity);
+                var g = gold.GetComponent<Pickup.GoldPickup>();
+                if (g != null) g.goldAmount = Random.Range(goldMin, goldMax + 1);
             }
 
             if (ObjectPooler.Instance != null) ObjectPooler.Instance.Return(gameObject);

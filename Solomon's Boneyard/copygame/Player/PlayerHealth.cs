@@ -8,6 +8,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using SolomonCopy.Systems;
+using SolomonCopy.Meta;
 
 namespace SolomonCopy.Player
 {
@@ -56,6 +57,11 @@ namespace SolomonCopy.Player
         private void Die()
         {
             IsDead = true;
+            if (MetaProgressionManager.Instance != null)
+            {
+                var runInv = GetComponent<RunRingInventory>();
+                MetaProgressionManager.Instance.OnRunEndedByDeath(runInv);
+            }
             if (GameManager.Instance != null) GameManager.Instance.GameOver();
         }
 

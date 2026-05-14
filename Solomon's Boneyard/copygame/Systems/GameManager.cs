@@ -17,11 +17,13 @@ namespace SolomonCopy.Systems
         [Header("UI 연결 (선택)")]
         public Text scoreText;
         public Text waveText;
+        public Text goldText;
         public GameObject gameOverPanel;
 
         public GameState State { get; private set; } = GameState.Playing;
         public int Score { get; private set; }
         public int Wave { get; private set; }
+        public int Gold { get; private set; }
 
         private void Awake()
         {
@@ -43,6 +45,18 @@ namespace SolomonCopy.Systems
             UpdateUI();
         }
 
+        public void AddGold(int delta)
+        {
+            Gold += delta;
+            UpdateUI();
+        }
+
+        public void SetGold(int value)
+        {
+            Gold = Mathf.Max(0, value);
+            UpdateUI();
+        }
+
         public void GameOver()
         {
             State = GameState.GameOver;
@@ -61,6 +75,7 @@ namespace SolomonCopy.Systems
         {
             if (scoreText != null) scoreText.text = $"Score: {Score}";
             if (waveText != null) waveText.text = $"Wave: {Wave}";
+            if (goldText != null) goldText.text = $"Gold: {Gold}";
         }
     }
 }

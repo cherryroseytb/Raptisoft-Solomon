@@ -85,3 +85,57 @@ Scripts/
 - 보스 적 + 보스 웨이브
 - 적 공격 패턴 다양화 (원거리 적, 돌진 적)
 - 입력 시스템 New Input System 통합 검토
+
+## 2026-05-14: Boneyard 메타 루프 코어 1차 구현
+
+### 추가된 모듈
+- **MetaProgressionManager (신규)**:
+  - `totalGold` 누적 관리
+  - 무덤 반지 풀(`gravePool`)과 다음 판 반입 선택(`carryOverSelection`, 최대 2) 관리
+  - 임시 기능 슬롯 확장(`tempExtraFeatureSlots`) 관리 및 사망 시 리셋
+- **RunRingInventory (신규)**:
+  - 런 인벤토리/장착 반지 분리
+  - 반지 장착(최대 2), 반지 분해(런 한정 랜덤 버프), 사망 시 스냅샷 제공
+- **GoldPickup (신규)**:
+  - 적 사망 보상 골드 드롭 수집 로직
+- **LoadoutSlotManager, RunStartBootstrap (신규)**:
+  - 시작 시 메타 상태(임시 슬롯/반입 반지/골드 UI) 적용
+
+### 기존 모듈 확장
+- **EnemyController**: XP 드롭 외에 골드 드롭(확률/최소/최대 골드) 추가
+- **PlayerHealth**: 사망 시 `MetaProgressionManager.OnRunEndedByDeath()` 호출
+- **GameManager**: Gold UI 필드/상태(`goldText`, `Gold`, `SetGold`, `AddGold`) 추가
+- **UpgradeApplier**: 반지/메타 버프 공용 적용용 `ApplyExternalMultipliers()` 추가
+
+### 현재 한계 (의도적)
+- 무덤지기 상호작용 UI/비용 랜덤(100~400) 선택 화면은 아직 미구현
+- 반지 "떨림/파괴" 상태 머신은 아직 미구현 (관측 기반 규칙 보류)
+- 반지 드롭 테이블(SO 기반) 미구현: 현재는 데이터 구조와 런타임 훅만 추가
+
+## 2026-05-14 (후속): Boneyard 기준 규칙 확정 및 메타 설계 갱신
+
+### 명칭/기준 정정
+- 프로젝트 내 표기를 `Bornyard` -> `Boneyard`로 통일.
+- 구현 기준은 Android판 Boneyard 플레이 관측 + 커뮤니티 가이드.
+
+### 확정된 핵심 규칙
+- **무덤지기**: 메뉴 입장 시 1회 비용 지불(랜덤), 반지 선택 자체에는 추가 비용 없음.
+- **무덤 풀 범위**: 사망 순간 인벤토리 + 장착 반지 모두.
+- **임시 슬롯 확장**: 판 종료(사망/마을 복귀) 시 초기화.
+- **시작 스킬효과 슬롯**: 기본 2칸, 임시 확장 포함 최대 7칸.
+- **레전더리 반지**: 코드상 존재, 기본 가중치 1(초희귀).
+
+### Services/Fates 방향
+- **Services(장착형 Perk)** 와 **Fates(비장착형 영구 해금)** 을 분리 모델로 관리.
+- 항목별 해금 비용은 전부 독립 값으로 관리(일괄 비용 미사용).
+- 공략 기반 기본 비용표를 코드 컨텍스트 메뉴로 자동 주입 가능하도록 설계.
+
+### Tonic 규칙(확정)
+- `Perk Tonic` 기본 가격: 1000 골드
+- `Reduce Tonic Cost` 구매 시 토닉 가격 누적 할인(5% 단위 가정)
+- 구현식: `tonicPrice = round(1000 * 0.95^n)` + 하한값(안전장치) 적용 예정
+
+### 데이터 출처 신뢰도
+- `Keep`/`Dark`: 텍스트 데이터 직접 확인 가능(`items.txt`, `items.cfg` 등).
+- `Boneyard`: 핵심 데이터 일부 난독화 상태로 직접 추출 어려움.
+- 따라서 Boneyard 특화 항목은 플레이 관측/공략/위키 정보로 우선 복원 후, 테스트로 보정.

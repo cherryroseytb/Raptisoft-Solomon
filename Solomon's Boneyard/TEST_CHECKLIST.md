@@ -227,6 +227,163 @@ Project 창 우클릭 → Create > SolomonCopy > Upgrade
 
 ---
 
+# 3차 추가 (2026-05-14 후속) — Boneyard 메타 루프(골드/무덤/반지 리스크)
+
+## 12. 씬 셋업 추가
+
+### Meta 매니저
+- [ ] 빈 GO `MetaProgressionManager` 생성 + `MetaProgressionManager.cs` 부착
+- [ ] `DontDestroyOnLoad` 동작 확인(씬 재시작 후 1개만 유지)
+
+### Player 컴포넌트 추가
+- [ ] `RunRingInventory.cs` 부착
+- [ ] `LoadoutSlotManager.cs` 부착
+- [ ] `RunStartBootstrap.cs` 부착
+
+### Gravekeeper (UI 연결 준비)
+- [ ] 빈 GO `GravekeeperService` 생성 + `GravekeeperService.cs` 부착
+- [ ] minCost=100, maxCost=400 기본값 확인
+
+### UI 추가
+- [ ] Gold Text를 `GameManager.goldText`에 연결
+
+### 프리팹 추가
+- [ ] `GoldPickup` 프리팹 생성 (SpriteRenderer + CircleCollider2D IsTrigger + Rigidbody2D Kinematic + `GoldPickup.cs`)
+- [ ] `EnemyController.goldPickupPrefab` 연결
+- [ ] `EnemyController.goldDropChance/goldMin/goldMax` 값 설정
+
+## 13. 메타 루프 동작 테스트
+
+### 골드 드롭/획득
+- [ ] 적 처치 시 확률적으로 골드 픽업 드롭
+- [ ] 골드 픽업이 플레이어 근처에서 흡착
+- [ ] 수집 시 `GameManager` Gold UI 증가
+- [ ] 씬 재시작 후에도 `MetaProgressionManager.totalGold` 누적 유지 확인
+
+### 임시 슬롯 확장
+- [ ] `TryBuyTemporaryFeatureSlot()` 성공 시 totalGold 감소, tempExtraFeatureSlots 증가
+- [ ] 사망 시 tempExtraFeatureSlots가 0으로 리셋되는지 확인
+- [ ] 임시 포함 시작 스킬 슬롯이 최대 7칸에서 캡되는지 확인
+
+### 무덤 반지 풀
+- [ ] 사망 순간 인벤토리/장착 반지가 `gravePool`에 누적되는지 확인
+- [ ] `GravekeeperService.RollCost()`가 100~400 범위 난수 반환 확인
+- [ ] 비용 부족 시 `ConfirmSelection()` 실패 확인
+- [ ] 비용 충분 시 최대 2개 반입 선택 성공 확인
+
+### 반지 떨림/파손 위험
+- [ ] 같은 반지를 반복 반입해 `carryOverUseCount`가 증가하는지 확인
+- [ ] `shakingThreshold` 이상에서 `isShaking=true` 전환 확인
+- [ ] 떨림 상태 반지 사용 후 사망 시 확률적으로 `brokeAfterLastRun=true`가 되는지 확인
+- [ ] `brokeAfterLastRun=true` 반지는 다음 런 시작 시 자동 반입 제외되는지 확인
+
+## 14. 신규 알려진 한계
+
+- ❗ 무덤지기 시각 UI(반지 리스트/툴팁/선택 강조) 미구현 — 현재는 서비스 로직만 구현
+- ❗ 반지 파손 시 연출(떨림/파손 이펙트, 사운드) 미구현
+- ❗ 반지 드롭 테이블은 구현됨. 다만 실제 체감에 맞는 확률/수치 밸런싱은 추가 조정 필요
+
+---
+
+# 4차 추가 (2026-05-14 후속2) — 반지 드롭 테이블 + 시작 랜덤 반지
+
+## 15. 데이터/SO 셋업
+
+### RingLootTable SO
+- [ ] `Create > SolomonCopy > Meta > RingLootTable` 생성
+- [ ] rarityWeights 설정 (기본값: Magic 70 / Rare 20 / Epic 9 / Legendary 1)
+- [ ] 기본 옵션 범위 및 등급 스케일 값 조정
+- [ ] prefixes/cores 문자열 풀 설정
+- [ ] 옵션 개수 규칙 확인:
+- [ ] Magic 1~2, Rare 1~2
+- [ ] Epic 2 또는 4
+- [ ] Legendary 사용 여부 미확정(가중치 0으로 비활성 가능)
+
+### MetaProgressionManager 연결
+- [ ] `ringLootTable` 필드에 위 SO 연결
+- [ ] `unlockStartWithRandomRings` ON/OFF 토글 확인
+- [ ] `startRandomRingCount` 기본 2 확인
+- [ ] `skillUnlockCosts`에 스킬효과별 해금 비용 입력
+- [ ] `featureUnlockCosts`에 특수기능별 해금 비용 입력
+- [ ] 우클릭 컨텍스트 `Reset Unlock Costs To Boneyard Defaults` 실행 시 공략 기반 기본 비용표가 채워지는지 확인
+
+## 16. 프리팹/적 드롭 셋업
+
+### RingPickup 프리팹
+- [ ] `RingPickup` 프리팹 생성 (SpriteRenderer + CircleCollider2D IsTrigger + Rigidbody2D Kinematic + `RingPickup.cs`)
+- [ ] `EnemyController.ringPickupPrefab` 연결
+- [ ] `EnemyController.ringDropChance` 값 설정 (초기 0.1 권장)
+
+## 17. 동작 테스트(코드 연결 검증)
+
+### 시작 랜덤 반지
+- [ ] `unlockStartWithRandomRings=true`일 때 런 시작 시 인벤토리에 랜덤 반지 2개 생성 확인
+- [ ] 인벤토리에 기존 반입 반지가 있으면 중복 추가되지 않는지 확인
+
+### 반지 드롭/획득
+- [ ] 적 사망 시 확률적으로 반지 픽업 드롭
+- [ ] 반지 픽업 흡착/획득 시 `RunRingInventory.inventory`에 추가 확인
+- [ ] 드롭 반지의 등급/옵션/이름이 무작위로 생성되는지 확인
+- [ ] 골드 연속 획득 시 상단 메시지 숫자가 누적(`Gold +합계`)되는지 확인
+- [ ] 마지막 골드 획득 후 약 3초 지나면 골드 메시지가 사라지는지 확인
+
+### 무덤 연계
+- [ ] 드롭 반지를 소지한 채 사망하면 무덤 풀(`gravePool`)에 누적 확인
+- [ ] 무덤에서 재반입 시 `carryOverUseCount` 누적 확인
+- [ ] 누적이 임계값 도달 시 `isShaking=true` 전환 확인
+- [ ] 무덤 메뉴 진입 시점에만 골드 1회 차감되고, 반지 선택 시 추가 비용 없는지 확인
+- [ ] 무덤 메뉴 진입 전에는 반지 상세를 표시하지 않는 UI 정책 적용 확인
+
+## 18. 추가 알려진 한계
+
+- ❗ 반지 옵션 밸런스 표(등급별 최소/최대, 다중 옵션 확률) 미확정
+- ❗ 반지 획득 UI 피드백(등급 컬러, 툴팁, 비교창) 미구현
+
+---
+
+# 5차 추가 (2026-05-14 후속3) — 모루 분해 인터랙션 + 반지 떨림 UI
+
+## 19. UI 셋업 추가
+
+- [ ] `InventoryAnvilDismantleController`를 인벤토리 UI 매니저 오브젝트에 부착
+- [ ] `characterVisual`, `anvilVisual` 참조 연결
+- [ ] 각 인벤토리 반지 버튼 OnClick -> `SelectInventoryRing(index)` 연결
+- [ ] 중앙 모루 버튼 OnClick -> `OnAnvilPressed()` 연결
+- [ ] 취소 동작 버튼(선택) -> `CancelSelection()` 연결
+
+## 20. 떨림 이펙트 셋업
+
+- [ ] 무덤/인벤토리 반지 슬롯 UI에 `RingShakeEffect` 부착
+- [ ] 반지 데이터의 `isShaking` 값에 맞춰 `SetShaking()` 호출 연결
+- [ ] 떨림 강도(amplitude)/빈도(frequency) 값 조정
+
+---
+
+# 6차 추가 (2026-05-14 후속4) — 로비 전용 NPC 근접 팝업
+
+## 21. 로비/런 분리 셋업
+
+- [ ] 로비 씬 루트에 `LobbyStateMarker` 1개 배치
+- [ ] 전투(런) 씬에는 `LobbyStateMarker`가 없도록 확인
+
+## 22. NPC 근접 상호작용 셋업
+
+- [ ] 무덤지기 NPC 오브젝트에 Trigger Collider2D 추가
+- [ ] `LobbyNpcInteractable` 부착
+- [ ] `popupMenuRoot`에 무덤지기 메뉴 패널 연결
+- [ ] 플레이어 태그가 `Player`인지 확인
+- [ ] `requirePressToOpen` 옵션 정책 결정:
+- [ ] OFF: 근접 즉시 팝업
+- [ ] ON: 근접 후 E 키(또는 모바일 버튼)로 팝업
+
+## 23. 동작 테스트
+
+- [ ] 로비에서 플레이어가 NPC 근접 시 팝업 메뉴 노출
+- [ ] NPC에서 멀어지면 팝업 자동 닫힘
+- [ ] 런 시작 후 동일 팝업이 노출되지 않음
+
+---
+
 ## 문제 발생 시 보고 양식
 
 ```

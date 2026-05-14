@@ -18,6 +18,32 @@ namespace SolomonCopy.Upgrade
         public float CooldownMul { get; private set; } = 1f;
         public float ProjectileSpeedMul { get; private set; } = 1f;
 
+        // 업그레이드 카드 외 시스템(반지/메타 보너스 등)에서 공용으로 사용.
+        public void ApplyExternalMultipliers(
+            float damageMulBonus,
+            float cooldownReduceBonus,
+            float moveSpeedMulBonus,
+            int maxHpBonus)
+        {
+            if (damageMulBonus > 0f) DamageMul *= (1f + damageMulBonus);
+            if (cooldownReduceBonus > 0f) CooldownMul *= (1f - cooldownReduceBonus);
+            if (moveSpeedMulBonus > 0f)
+            {
+                var pc = GetComponent<PlayerController>();
+                if (pc != null) pc.moveSpeed *= (1f + moveSpeedMulBonus);
+            }
+
+            if (maxHpBonus > 0)
+            {
+                var ph = GetComponent<PlayerHealth>();
+                if (ph != null)
+                {
+                    ph.maxHp += maxHpBonus;
+                    ph.Heal(maxHpBonus);
+                }
+            }
+        }
+
         public void Apply(SkillUpgradeSO u)
         {
             if (u == null) return;
@@ -27,22 +53,16 @@ namespace SolomonCopy.Upgrade
             switch (u.kind)
             {
                 case UpgradeKind.DamageMul:
-                    DamageMul *= (1f + u.magnitude);
+                    ApplyExternalMultipliers(u.magnitude, 0f, 0f, 0);
                     break;
                 case UpgradeKind.CooldownReduce:
-                    CooldownMul *= (1f - u.magnitude);
+                    ApplyExternalMultipliers(0f, u.magnitude, 0f, 0);
                     break;
                 case UpgradeKind.SpeedMul:
-                    var pc = GetComponent<PlayerController>();
-                    if (pc != null) pc.moveSpeed *= (1f + u.magnitude);
+                    ApplyExternalMultipliers(0f, 0f, u.magnitude, 0);
                     break;
                 case UpgradeKind.MaxHpAdd:
-                    var ph = GetComponent<PlayerHealth>();
-                    if (ph != null)
-                    {
-                        ph.maxHp += Mathf.RoundToInt(u.magnitude);
-                        ph.Heal(Mathf.RoundToInt(u.magnitude));
-                    }
+                    ApplyExternalMultipliers(0f, 0f, 0f, Mathf.RoundToInt(u.magnitude));
                     break;
                 case UpgradeKind.HealNow:
                     var ph2 = GetComponent<PlayerHealth>();
