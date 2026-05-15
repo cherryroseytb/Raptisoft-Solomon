@@ -48,10 +48,5 @@ namespace SolomonCopy.Enemy
             rb.MovePosition(rb.position + _chargeDir * chargeSpeed * Time.fixedDeltaTime);
         }
 
-        private void MoveTowardsPlayer()
-        {
-            Vector2 dir = ((Vector2)player.position - rb.position).normalized;
-            rb.MovePosition(rb.position + dir * controller.moveSpeed * Time.fixedDeltaTime);
-        }
     }
 }

@@ -34,18 +34,6 @@ namespace SolomonCopy.Enemy
             }
         }
 
-        private void MoveTowardsPlayer()
-        {
-            Vector2 dir = ((Vector2)player.position - rb.position).normalized;
-            rb.MovePosition(rb.position + dir * controller.moveSpeed * Time.fixedDeltaTime);
-        }
-
-        private void MoveAwayFromPlayer()
-        {
-            Vector2 dir = (rb.position - (Vector2)player.position).normalized;
-            rb.MovePosition(rb.position + dir * controller.moveSpeed * Time.fixedDeltaTime);
-        }
-
         private void TryAttack()
         {
             if (Time.time < _nextAttackTime) return;

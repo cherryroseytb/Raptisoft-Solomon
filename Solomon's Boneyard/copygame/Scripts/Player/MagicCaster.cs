@@ -46,6 +46,21 @@ namespace SolomonCopy.Player
 
         private float Mul(float v, float m) => v * m;
 
+        private void GetMultipliers(int startBonusLevel, out float dmgMul, out float spdMul, out float cdMul)
+        {
+            dmgMul = _upgrades != null ? _upgrades.DamageMul : 1f;
+            spdMul = _upgrades != null ? _upgrades.ProjectileSpeedMul : 1f;
+            cdMul  = _upgrades != null ? _upgrades.CooldownMul : 1f;
+            if (MetaProgressionManager.Instance != null && MetaProgressionManager.Instance.IsHardcoreEnabled())
+                dmgMul *= 2f;
+            if (startBonusLevel > 0)
+            {
+                dmgMul *= 1f + (startBonusLevel * startBonusDamagePerLevel);
+                cdMul  *= Mathf.Max(minCooldownMultiplier, 1f - (startBonusLevel * startBonusCooldownReducePerLevel));
+            }
+            if (_runBuffs != null) dmgMul *= _runBuffs.damageMultiplier;
+        }
+
         public void SetSlotA(BaseMagicId id) { slotA = id; }
         public void SetSlotB(BaseMagicId id) { slotB = id; }
         public void ConfigureStartSkillBonuses(int allSkillBonus, int masterOffensePrimaryBonus)
@@ -81,25 +96,12 @@ namespace SolomonCopy.Player
         private void FireBase(BaseMagicSO m, Vector2 dir)
         {
             if (m.projectilePrefab == null) return;
-            var pos = (muzzle != null ? muzzle.position : transform.position);
+            var pos = muzzle != null ? muzzle.position : transform.position;
             var go = ObjectPooler.Instance != null
                 ? ObjectPooler.Instance.Spawn(m.projectilePrefab, pos, Quaternion.identity)
                 : Instantiate(m.projectilePrefab, pos, Quaternion.identity);
             var p = go.GetComponent<Projectile>();
-            float dmgMul = _upgrades != null ? _upgrades.DamageMul : 1f;
-            float spdMul = _upgrades != null ? _upgrades.ProjectileSpeedMul : 1f;
-            float cdMul = _upgrades != null ? _upgrades.CooldownMul : 1f;
-            if (MetaProgressionManager.Instance != null)
-            {
-                if (MetaProgressionManager.Instance.IsHardcoreEnabled()) dmgMul *= 2f;
-            }
-            int startBonusLevel = GetStartBonusLevelForBase(slotA);
-            if (startBonusLevel > 0)
-            {
-                dmgMul *= 1f + (startBonusLevel * startBonusDamagePerLevel);
-                cdMul *= Mathf.Max(minCooldownMultiplier, 1f - (startBonusLevel * startBonusCooldownReducePerLevel));
-            }
-            if (_runBuffs != null) dmgMul *= _runBuffs.damageMultiplier;
+            GetMultipliers(GetStartBonusLevelForBase(slotA), out float dmgMul, out float spdMul, out float cdMul);
             if (p != null)
                 p.Initialize(dir, m.speed * spdMul, m.lifetime,
                              Mathf.RoundToInt(m.damage * dmgMul),
@@ -111,27 +113,13 @@ namespace SolomonCopy.Player
         private void FireCombo(ComboMagicSO c, Vector2 dir)
         {
             if (c.projectilePrefab == null) return;
-            var pos = (muzzle != null ? muzzle.position : transform.position);
+            var pos = muzzle != null ? muzzle.position : transform.position;
             var go = ObjectPooler.Instance != null
                 ? ObjectPooler.Instance.Spawn(c.projectilePrefab, pos, Quaternion.identity)
                 : Instantiate(c.projectilePrefab, pos, Quaternion.identity);
             var p = go.GetComponent<Projectile>();
-            float dmgMul = _upgrades != null ? _upgrades.DamageMul : 1f;
-            float spdMul = _upgrades != null ? _upgrades.ProjectileSpeedMul : 1f;
-            float cdMul = _upgrades != null ? _upgrades.CooldownMul : 1f;
-            if (MetaProgressionManager.Instance != null)
-            {
-                if (MetaProgressionManager.Instance.IsHardcoreEnabled()) dmgMul *= 2f;
-            }
-            int bonusA = GetStartBonusLevelForBase(slotA);
-            int bonusB = GetStartBonusLevelForBase(slotB);
-            int startBonusLevel = Mathf.RoundToInt((bonusA + bonusB) * 0.5f);
-            if (startBonusLevel > 0)
-            {
-                dmgMul *= 1f + (startBonusLevel * startBonusDamagePerLevel);
-                cdMul *= Mathf.Max(minCooldownMultiplier, 1f - (startBonusLevel * startBonusCooldownReducePerLevel));
-            }
-            if (_runBuffs != null) dmgMul *= _runBuffs.damageMultiplier;
+            int startBonusLevel = Mathf.RoundToInt((GetStartBonusLevelForBase(slotA) + GetStartBonusLevelForBase(slotB)) * 0.5f);
+            GetMultipliers(startBonusLevel, out float dmgMul, out float spdMul, out float cdMul);
             if (p != null)
                 p.Initialize(dir, c.speed * spdMul, c.lifetime,
                              Mathf.RoundToInt(c.damage * dmgMul),

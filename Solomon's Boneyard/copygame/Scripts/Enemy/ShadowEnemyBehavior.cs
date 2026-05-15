@@ -9,6 +9,8 @@ namespace SolomonCopy.Enemy
         public float attackRange = 1.5f;
         public GameObject explosionEffect;
 
+        private bool _isVisible = true;
+
         protected override void Awake()
         {
             base.Awake();
@@ -20,22 +22,21 @@ namespace SolomonCopy.Enemy
             float dist = Vector2.Distance(rb.position, player.position);
             if (dist <= attackRange)
             {
-                // 공격 순간에만 보임
                 SetVisibility(true);
                 currentState = EnemyState.Attack;
             }
             else
             {
-                // 이동 중에는 투명
                 SetVisibility(false);
                 currentState = EnemyState.Chase;
-                Vector2 dir = ((Vector2)player.position - rb.position).normalized;
-                rb.MovePosition(rb.position + dir * controller.moveSpeed * Time.fixedDeltaTime);
+                MoveTowardsPlayer();
             }
         }
 
         private void SetVisibility(bool visible)
         {
+            if (_isVisible == visible) return;
+            _isVisible = visible;
             if (spriteRenderer != null)
             {
                 Color c = spriteRenderer.color;

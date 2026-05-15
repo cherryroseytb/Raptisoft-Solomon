@@ -1,4 +1,5 @@
 using UnityEngine;
+using SolomonCopy.Systems;
 
 namespace SolomonCopy.Enemy
 {
@@ -31,5 +32,26 @@ namespace SolomonCopy.Enemy
         }
 
         protected abstract void UpdateState();
+
+        protected void MoveTowardsPlayer(float speedMultiplier = 1f)
+        {
+            Vector2 dir = ((Vector2)player.position - rb.position).normalized;
+            rb.MovePosition(rb.position + dir * controller.moveSpeed * speedMultiplier * Time.fixedDeltaTime);
+        }
+
+        protected void MoveAwayFromPlayer(float speedMultiplier = 1f)
+        {
+            Vector2 dir = (rb.position - (Vector2)player.position).normalized;
+            rb.MovePosition(rb.position + dir * controller.moveSpeed * speedMultiplier * Time.fixedDeltaTime);
+        }
+
+        protected GameObject SpawnObject(GameObject prefab, Vector3? position = null, Quaternion? rotation = null)
+        {
+            var pos = position ?? transform.position;
+            var rot = rotation ?? Quaternion.identity;
+            return ObjectPooler.Instance != null
+                ? ObjectPooler.Instance.Spawn(prefab, pos, rot)
+                : Instantiate(prefab, pos, rot);
+        }
     }
 }

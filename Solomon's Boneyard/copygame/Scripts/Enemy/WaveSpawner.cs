@@ -31,6 +31,7 @@ namespace SolomonCopy.Enemy
         private float _nextWaveAt;
         private int _waveIndex;
         private int _nextBossSpawnKillCount;
+        private float _cachedWaveTotal = -1f;
 
         private void Start()
         {
@@ -89,6 +90,7 @@ namespace SolomonCopy.Enemy
                 }
             }
             _waveIndex++;
+            _cachedWaveTotal = -1f; // 다음 웨이브에서 가중치 재계산
             if (GameManager.Instance != null) GameManager.Instance.SetWave(_waveIndex);
         }
 
@@ -125,19 +127,23 @@ namespace SolomonCopy.Enemy
                 Instantiate(bossEnemyPrefab, pos, Quaternion.identity);
         }
 
-        // 현재 웨이브에서 등장 가능한 타입 중 가중치 추첨
+        // 현재 웨이브에서 등장 가능한 타입 중 가중치 추첨. 웨이브당 합계는 1회만 계산.
         private EnemyTypeSO PickEnemyType()
         {
             if (enemyTypes == null || enemyTypes.Length == 0) return null;
-            float total = 0f;
-            for (int i = 0; i < enemyTypes.Length; i++)
-            {
-                var t = enemyTypes[i];
-                if (t != null && _waveIndex + 1 >= t.minWave) total += t.weight;
-            }
-            if (total <= 0f) return null;
 
-            float roll = Random.Range(0f, total);
+            if (_cachedWaveTotal < 0f)
+            {
+                _cachedWaveTotal = 0f;
+                for (int i = 0; i < enemyTypes.Length; i++)
+                {
+                    var t = enemyTypes[i];
+                    if (t != null && _waveIndex + 1 >= t.minWave) _cachedWaveTotal += t.weight;
+                }
+            }
+            if (_cachedWaveTotal <= 0f) return null;
+
+            float roll = Random.Range(0f, _cachedWaveTotal);
             float acc = 0f;
             for (int i = 0; i < enemyTypes.Length; i++)
             {

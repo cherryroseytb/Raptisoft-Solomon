@@ -26,8 +26,7 @@ namespace SolomonCopy.Enemy
             else
             {
                 currentState = EnemyState.Chase;
-                Vector2 dir = ((Vector2)player.position - rb.position).normalized;
-                rb.MovePosition(rb.position + dir * controller.moveSpeed * Time.fixedDeltaTime);
+                MoveTowardsPlayer();
             }
         }
 
