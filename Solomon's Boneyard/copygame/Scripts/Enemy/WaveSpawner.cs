@@ -42,6 +42,7 @@ namespace SolomonCopy.Enemy
             }
             _nextWaveAt = Time.time + 1f;
             _nextBossSpawnKillCount = Mathf.Max(1, bossFirstSpawnAtKills);
+            SoundManager.Instance?.PlayBattleBgm();
         }
 
         private void Update()
@@ -89,6 +90,7 @@ namespace SolomonCopy.Enemy
                     }
                 }
             }
+            SoundManager.Instance?.Play(SoundId.WaveStart);
             _waveIndex++;
             _cachedWaveTotal = -1f; // 다음 웨이브에서 가중치 재계산
             if (GameManager.Instance != null) GameManager.Instance.SetWave(_waveIndex);
@@ -118,6 +120,7 @@ namespace SolomonCopy.Enemy
 
         private void SpawnBoss()
         {
+            SoundManager.Instance?.Play(SoundId.BossAppear);
             float angle = Random.Range(0f, Mathf.PI * 2f);
             Vector2 offset = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)) * spawnRadius;
             Vector3 pos = player.position + (Vector3)offset;

@@ -107,6 +107,7 @@ namespace SolomonCopy.Player
                              Mathf.RoundToInt(m.damage * dmgMul),
                              m.pierce, m.statusEffect, m.statusDuration);
             _cooldownUntil = Time.time + m.cooldown * cdMul;
+            SoundManager.Instance?.Play(SoundId.MagicFireBase);
             Debug.Log($"[MagicCaster] Fired: {m.displayName}");
         }
 
@@ -126,6 +127,7 @@ namespace SolomonCopy.Player
                              c.pierce, c.statusEffect, c.statusDuration,
                              c.explodeOnHit, c.aoeRadius, c.chainCount, c.chainRange);
             _cooldownUntil = Time.time + c.cooldown * cdMul;
+            SoundManager.Instance?.Play(SoundId.MagicFireCombo);
             Debug.Log($"[MagicCaster] Fired Combo: {c.displayName}");
         }
 

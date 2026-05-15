@@ -97,6 +97,7 @@ namespace SolomonCopy.Enemy
         {
             ApplyDamage(amount);
             if (_hp <= 0) return;
+            SoundManager.Instance?.Play(SoundId.EnemyHit);
 
             switch (effect)
             {
@@ -125,6 +126,7 @@ namespace SolomonCopy.Enemy
 
         private void Die()
         {
+            SoundManager.Instance?.Play(SoundId.EnemyDie);
             var gm = GameManager.Instance;
             if (gm != null) { gm.AddScore(10); gm.AddKill(1); }
 

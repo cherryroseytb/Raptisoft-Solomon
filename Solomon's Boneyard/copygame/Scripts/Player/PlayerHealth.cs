@@ -57,6 +57,7 @@ namespace SolomonCopy.Player
             _invulnUntil = Time.time + invulnDuration;
 
             Hp = Mathf.Max(0, Hp - amount);
+            SoundManager.Instance?.Play(SoundId.PlayerHit);
 
             // Auto Potion: 치명 구간에서 1회 자동 회복
             if (!IsDead && _autoPotionCharges > 0 && MetaProgressionManager.Instance != null && MetaProgressionManager.Instance.IsAutoPotionEnabled())
@@ -67,6 +68,7 @@ namespace SolomonCopy.Player
                     _autoPotionCharges--;
                     int healAmount = Mathf.RoundToInt(maxHp * (autoPotionHealPercent / 100f));
                     Heal(healAmount);
+                    SoundManager.Instance?.Play(SoundId.AutoPotion);
                     if (TopCenterMessageFeed.Instance != null) TopCenterMessageFeed.Instance.Show("Auto Potion 발동");
                 }
             }
@@ -85,6 +87,8 @@ namespace SolomonCopy.Player
         private void Die()
         {
             IsDead = true;
+            SoundManager.Instance?.Play(SoundId.PlayerDie);
+            SoundManager.Instance?.PlayGameOverBgm();
 
             // Blaze of Glory: 사망 시 주변 폭발
             if (MetaProgressionManager.Instance != null && MetaProgressionManager.Instance.IsBlazeOfGloryEnabled())

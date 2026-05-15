@@ -36,6 +36,7 @@ namespace SolomonCopy.Pickup
 
         private void Collect()
         {
+            SoundManager.Instance?.Play(SoundId.GoldCollect);
             if (MetaProgressionManager.Instance != null)
                 MetaProgressionManager.Instance.AddGold(goldAmount);
             else if (GameManager.Instance != null)

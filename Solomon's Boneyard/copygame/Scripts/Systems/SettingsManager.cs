@@ -37,6 +37,7 @@ namespace SolomonCopy.Systems
             bgmVolume = v;
             PlayerPrefs.SetFloat("BGMVolume", v);
             ApplyVolume();
+            if (SoundManager.Instance != null) SoundManager.Instance.RefreshBgmVolume();
         }
 
         private void ApplyVolume()

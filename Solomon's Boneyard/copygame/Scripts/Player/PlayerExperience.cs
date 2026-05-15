@@ -6,6 +6,7 @@
 
 using UnityEngine;
 using UnityEngine.UI;
+using SolomonCopy.Systems;
 
 namespace SolomonCopy.Player
 {
@@ -41,6 +42,7 @@ namespace SolomonCopy.Player
             {
                 xp -= XpNeeded;
                 level++;
+                SoundManager.Instance?.Play(SoundId.LevelUp);
                 if (levelUpController != null) levelUpController.OpenChoice(level);
             }
             UpdateUI();

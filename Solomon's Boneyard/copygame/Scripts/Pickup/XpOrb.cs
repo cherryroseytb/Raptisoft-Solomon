@@ -59,6 +59,7 @@ namespace SolomonCopy.Pickup
 
         private void Collect()
         {
+            SoundManager.Instance?.Play(SoundId.XpCollect);
             if (PlayerExperience.Instance != null) PlayerExperience.Instance.AddXp(xpAmount);
             if (ObjectPooler.Instance != null) ObjectPooler.Instance.Return(gameObject);
             else gameObject.SetActive(false);
