@@ -620,3 +620,60 @@ Project 창 우클릭 → Create > SolomonCopy > Upgrade
 4. Console 메시지 (있다면 그대로 복사):
 5. 관련 GameObject 인스펙터 스크린샷 (가능하면):
 ```
+
+---
+
+## 40. VFX 시스템 (2026-05-19)
+
+### 셋업
+- [ ] 빈 GO "VfxManager" 씬 배치, VfxManager.cs 부착
+- [ ] `Create > SolomonCopy > Vfx > VfxLibrary` 에셋 생성 → VfxManager.library 연결
+- [ ] 각 VfxId에 ParticleSystem 프리팹 등록 (없으면 호출만 되고 시각 효과 없음 — 안전)
+
+### 동작 검증
+- [ ] 적 피격 시 EnemyHit 이펙트 재생
+- [ ] 적 사망 시 EnemyDie / 보스 사망 시 BossDie 이펙트
+- [ ] 상태이상별 임팩트 (Fire/Ice/Lightning/Earth) 발사체 충돌 시 재생
+- [ ] 콤보 폭발 → Explosion 이펙트 / 체인 → ChainLightning 이펙트
+- [ ] XP/Gold 획득 시 픽업 이펙트
+- [ ] 레벨업 시 LevelUp 이펙트
+- [ ] 플레이어 피격/사망 / BlazeOfGlory 발동 이펙트
+
+---
+
+## 41. 씬 플로우 & 메인 메뉴 (2026-05-19)
+
+### 셋업
+- [ ] 3개 씬 생성: `MainMenu_Scene`, `Lobby_Scene`, `Battle_Scene` (기존 GetStarted_Scene 이름 변경 가능)
+- [ ] Build Settings에 3개 씬 모두 등록 (0:MainMenu, 1:Lobby, 2:Battle)
+- [ ] MainMenu_Scene에 Canvas + MainMenuController 부착
+  - Start 버튼 OnClick → MainMenuController.OnStartPressed
+  - Settings 버튼 OnClick → OnSettingsPressed
+  - Quit 버튼 OnClick → OnQuitPressed
+- [ ] Lobby_Scene에 LobbySceneController + LobbyStateMarker 부착
+  - goldText, totalKillsText 연결
+  - 전투 시작 버튼 OnClick → OnEnterBattlePressed
+  - 메인 메뉴 버튼 OnClick → OnBackToMainMenuPressed
+
+### 동작 검증
+- [ ] 타이틀 → Start → 로비 진입
+- [ ] 로비 → 전투 시작 → 전투 씬 로드
+- [ ] 전투 → 사망 → 게임오버 패널 → "로비로" 버튼 → 로비 복귀
+- [ ] 로비에서 골드 표시값이 MetaProgressionManager.totalGold와 일치
+- [ ] 빌드세팅에 씬 누락 시 "씬을 찾을 수 없습니다" 경고만 출력되고 현재 씬 유지
+
+---
+
+## 42. 보스 인트로 연출 (2026-05-19)
+
+### 셋업
+- [ ] Battle_Scene 캔버스에 BossIntroController 부착
+- [ ] warningRoot: "BOSS APPROACHING" 텍스트 + 배경 (평소 비활성)
+- [ ] shakeCamera: Main Camera Transform 연결
+- [ ] bossBgm: 보스용 AudioClip 연결 (선택)
+
+### 동작 검증
+- [ ] 보스 등장 시 warningRoot 2초간 표시
+- [ ] 카메라가 0.6초간 흔들림 (감쇠 적용)
+- [ ] 보스 BGM 크로스페이드로 전환
+- [ ] 짧은 시간 내 보스 2회 스폰 시 인트로 중복 재생 안 됨

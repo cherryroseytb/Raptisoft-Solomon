@@ -360,3 +360,24 @@ Scripts/
 ### 현재 개발 방침
 - 실시간 Unity 테스트 불가 환경 → **코드 선행 개발 우선**.
 - 테스트는 TEST_CHECKLIST.md에 누적 기록. Unity 열릴 때 일괄 검증.
+
+## 2026-05-19 (VFX 시스템 + 씬 플로우 + 보스 인트로)
+
+### VFX 시스템 (`fc39c0a`)
+- `Systems/VfxId.cs`: 26개 이펙트 식별자 (피격/사망/상태이상/콤보/픽업/시스템).
+- `Systems/VfxLibrarySO.cs`: VfxId→prefab 매핑 데이터 에셋. lifetime/scale 설정.
+- `Systems/VfxManager.cs`: ObjectPooler 기반 재생 싱글톤. lifetime 후 자동 회수.
+- 훅 연결: Projectile(상태이상별 임팩트), ProjectileEffects(폭발/체인), EnemyController(피격/사망/보스사망), PlayerHealth(피격/사망/BlazeOfGlory), PlayerExperience(LevelUp), XpOrb/GoldPickup(획득).
+
+### 씬 플로우 (`029d6f5`)
+- `Systems/SceneFlow.cs`: 씬 이름 상수 + 빌드세팅 미등록 시 안전 폴백.
+  - MainMenu_Scene / Lobby_Scene / Battle_Scene 3씬 구조.
+- `UI/MainMenuController.cs`: 타이틀 (Start→Lobby / Settings / Quit).
+- `UI/LobbySceneController.cs`: 로비 BGM + 골드 표시 + 전투/메인 복귀 버튼.
+- `UI/BossIntroController.cs`: 보스 등장 경고 UI + 카메라 셰이크 + BGM 전환.
+  - WaveSpawner.SpawnBoss에서 자동 트리거.
+- GameManager에 GoToLobby/GoToMainMenu 추가 (게임오버 패널 버튼용).
+
+### 미구현 (남은 코드 작업 없음)
+- 메모리에 기록된 우선순위 1~3번 모두 코드 작업 완료.
+- 남은 작업은 Unity 에디터에서 GO/프리팹/씬 셋업 + 에셋 연결 (사용자 작업).
