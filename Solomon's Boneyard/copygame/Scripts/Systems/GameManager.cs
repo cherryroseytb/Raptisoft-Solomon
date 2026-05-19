@@ -73,9 +73,19 @@ namespace SolomonCopy.Systems
 
         public void Restart()
         {
-            Time.timeScale = 1f;
-            UnityEngine.SceneManagement.SceneManager.LoadScene(
-                UnityEngine.SceneManagement.SceneManager.GetActiveScene().buildIndex);
+            SceneFlow.RestartCurrent();
+        }
+
+        // 게임오버 패널 버튼에서 호출: 로비로 복귀.
+        public void GoToLobby()
+        {
+            SceneFlow.GoToLobby();
+        }
+
+        // 게임오버 패널 버튼에서 호출: 메인 메뉴로.
+        public void GoToMainMenu()
+        {
+            SceneFlow.GoToMainMenu();
         }
 
         private void UpdateUI()

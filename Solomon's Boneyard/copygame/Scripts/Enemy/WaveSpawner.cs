@@ -121,6 +121,7 @@ namespace SolomonCopy.Enemy
         private void SpawnBoss()
         {
             SoundManager.Instance?.Play(SoundId.BossAppear);
+            SolomonCopy.UI.BossIntroController.Instance?.Play();
             float angle = Random.Range(0f, Mathf.PI * 2f);
             Vector2 offset = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)) * spawnRadius;
             Vector3 pos = player.position + (Vector3)offset;
