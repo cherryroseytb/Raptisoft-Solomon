@@ -6,6 +6,7 @@ using UnityEngine;
 using System.Collections.Generic;
 using SolomonCopy.Magic;
 using SolomonCopy.Enemy;
+using SolomonCopy.Systems;
 
 namespace SolomonCopy.ProjectileSys
 {
@@ -14,6 +15,7 @@ namespace SolomonCopy.ProjectileSys
         // 폭발: 지정 반경 내 모든 Enemy에 데미지/상태이상 적용
         public static void Explode(Vector2 center, float radius, int damage, StatusEffect effect, float duration)
         {
+            VfxManager.Instance?.Play(VfxId.Explosion, center);
             var hits = Physics2D.OverlapCircleAll(center, radius);
             foreach (var col in hits)
             {
@@ -34,6 +36,7 @@ namespace SolomonCopy.ProjectileSys
                 var next = FindNearestEnemy(current.transform.position, range, hit);
                 if (next == null) break;
                 next.TakeDamage(damage, effect, duration);
+                VfxManager.Instance?.Play(VfxId.ChainLightning, next.transform.position);
                 hit.Add(next);
                 current = next;
             }

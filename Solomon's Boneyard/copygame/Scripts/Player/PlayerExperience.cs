@@ -43,6 +43,7 @@ namespace SolomonCopy.Player
                 xp -= XpNeeded;
                 level++;
                 SoundManager.Instance?.Play(SoundId.LevelUp);
+                VfxManager.Instance?.Play(VfxId.LevelUp, transform.position);
                 if (levelUpController != null) levelUpController.OpenChoice(level);
             }
             UpdateUI();

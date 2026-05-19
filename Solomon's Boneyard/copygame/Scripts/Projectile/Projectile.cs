@@ -66,6 +66,9 @@ namespace SolomonCopy.ProjectileSys
 
             enemy.TakeDamage(_damage, _effect, _effectDuration);
 
+            // 충격 이펙트: 상태이상별 매핑
+            VfxManager.Instance?.Play(ImpactVfxFor(_effect), transform.position);
+
             if (_explodeOnHit && _aoeRadius > 0f)
             {
                 ProjectileEffects.Explode(transform.position, _aoeRadius, _damage / 2, _effect, _effectDuration);
@@ -76,6 +79,18 @@ namespace SolomonCopy.ProjectileSys
             }
 
             if (!_pierce) Despawn();
+        }
+
+        private static VfxId ImpactVfxFor(StatusEffect effect)
+        {
+            switch (effect)
+            {
+                case StatusEffect.Burn:   return VfxId.ImpactFire;
+                case StatusEffect.Slow:   return VfxId.ImpactIce;
+                case StatusEffect.Shock:  return VfxId.ImpactLightning;
+                case StatusEffect.Poison: return VfxId.ImpactEarth;
+                default:                  return VfxId.EnemyHit;
+            }
         }
 
         private void Despawn()

@@ -103,17 +103,21 @@ namespace SolomonCopy.Enemy
             {
                 case StatusEffect.Slow:
                     _slowUntil = Mathf.Max(_slowUntil, Time.time + duration);
+                    VfxManager.Instance?.Play(VfxId.HitSlow, transform.position);
                     break;
                 case StatusEffect.Burn:
                     _burnUntil = Mathf.Max(_burnUntil, Time.time + duration);
                     if (_nextBurnTick < Time.time) _nextBurnTick = Time.time + 0.5f;
+                    VfxManager.Instance?.Play(VfxId.HitBurn, transform.position);
                     break;
                 case StatusEffect.Shock:
                     _shockUntil = Mathf.Max(_shockUntil, Time.time + Mathf.Min(duration, 0.6f));
+                    VfxManager.Instance?.Play(VfxId.HitShock, transform.position);
                     break;
                 case StatusEffect.Poison:
                     _poisonUntil = Mathf.Max(_poisonUntil, Time.time + duration);
                     if (_nextPoisonTick < Time.time) _nextPoisonTick = Time.time + 1f;
+                    VfxManager.Instance?.Play(VfxId.HitPoison, transform.position);
                     break;
             }
         }
@@ -127,6 +131,7 @@ namespace SolomonCopy.Enemy
         private void Die()
         {
             SoundManager.Instance?.Play(SoundId.EnemyDie);
+            VfxManager.Instance?.Play(isBoss ? VfxId.BossDie : VfxId.EnemyDie, transform.position);
             var gm = GameManager.Instance;
             if (gm != null) { gm.AddScore(10); gm.AddKill(1); }
 

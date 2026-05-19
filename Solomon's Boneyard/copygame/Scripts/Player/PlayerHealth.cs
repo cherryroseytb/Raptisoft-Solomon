@@ -58,6 +58,7 @@ namespace SolomonCopy.Player
 
             Hp = Mathf.Max(0, Hp - amount);
             SoundManager.Instance?.Play(SoundId.PlayerHit);
+            VfxManager.Instance?.Play(VfxId.PlayerHit, transform.position);
 
             // Auto Potion: 치명 구간에서 1회 자동 회복
             if (!IsDead && _autoPotionCharges > 0 && MetaProgressionManager.Instance != null && MetaProgressionManager.Instance.IsAutoPotionEnabled())
@@ -89,10 +90,12 @@ namespace SolomonCopy.Player
             IsDead = true;
             SoundManager.Instance?.Play(SoundId.PlayerDie);
             SoundManager.Instance?.PlayGameOverBgm();
+            VfxManager.Instance?.Play(VfxId.PlayerDie, transform.position);
 
             // Blaze of Glory: 사망 시 주변 폭발
             if (MetaProgressionManager.Instance != null && MetaProgressionManager.Instance.IsBlazeOfGloryEnabled())
             {
+                VfxManager.Instance?.Play(VfxId.BlazeOfGlory, transform.position);
                 var hits = Physics2D.OverlapCircleAll(transform.position, blazeRadius);
                 for (int i = 0; i < hits.Length; i++)
                 {
